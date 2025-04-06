@@ -410,7 +410,7 @@ class Runner
 			if (cur.dest.name in curState.arrays)
 			{
 				curState.arrays[cur.dest.name] =
-				    Array (new long [values[0].to !(size_t)]);
+				    Array (new long [values[0].to !(size_t)], cur.isConst);
 				return;
 			}
 		}
@@ -440,6 +440,19 @@ class Runner
 
 			auto value = evalExpression (expr);
 			auto addr = getAddr (dest, type == Type.assign);
+
+			if(isConst && type == Type.assign)
+			{
+				foreach_reverse(ref curState; state)
+				{
+					if(dest.name in curState.vars)
+					{
+						 curState.vars[dest.name].isConst = true;
+                    	break;
+					}
+				}
+			}
+
 			doAssign (cur0, addr, value);
 			delay = complexity;
 			return;

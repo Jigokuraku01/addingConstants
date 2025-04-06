@@ -53,7 +53,7 @@ struct Line
 					}
 					while (!t.empty && (t.front.isDigit || t.front == '_'));
 				}
-				else if (t.front.isIdent)
+				else if (t.front.isIdent || t == "const")
 				{
 					do
 					{
@@ -499,6 +499,13 @@ final class StatementParser
 		    "indent does not match");
 		t.popFront ();
 
+		bool isConst = false;
+		if (!line.tokens.empty && line.tokens.front == "const")
+    	{
+        	isConst = true;
+        	line.tokens.popFront();
+    	}
+
 		auto var = cast (VarExpression) (parseExpression (line));
 		check (var !is null, line,
 		    "assign statement detected but left side not parsed");
@@ -528,7 +535,7 @@ final class StatementParser
 		check (line.tokens.empty, line,
 		    "extra token at end of line: " ~ line.tokens.front);
 
-		return new AssignStatement (line.lineId, type, var, cur);
+		return new AssignStatement (line.lineId, type, var, cur, isConst);
 	}
 
 	Statement parseStatement (string prevIndent)

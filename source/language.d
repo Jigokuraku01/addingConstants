@@ -31,14 +31,16 @@ final class AssignStatement : Statement
 	Type type;
 	VarExpression dest;
 	Expression expr;
+	bool isConst;
 
-	this (int lineId_, Type type_, VarExpression dest_, Expression expr_)
+	this (int lineId_, Type type_, VarExpression dest_, Expression expr_, bool isConst_ = false)
 	{
 		lineId = lineId_;
 		type = type_;
 		dest = dest_;
 		expr = expr_;
 		complexity = 1 + dest.complexity + expr.complexity;
+		isConst = isConst_;
 	}
 }
 
