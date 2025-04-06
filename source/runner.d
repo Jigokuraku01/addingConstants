@@ -415,7 +415,7 @@ class Runner
 			}
 		}
 		state.back.arrays[cur.dest.name] =
-		    Array (new long [values[0].to !(size_t)]);
+		    Array (new long [values[0].to !(size_t)], cur.isConst);
 	}
 
 	void runStatementImpl (Statement s)
