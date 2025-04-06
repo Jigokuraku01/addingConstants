@@ -409,13 +409,19 @@ class Runner
 		{
 			if (cur.dest.name in curState.arrays)
 			{
+				if(cur.isConst)
+					throw new Exception
+			    		("array: array cannot be const");
 				curState.arrays[cur.dest.name] =
-				    Array (new long [values[0].to !(size_t)], cur.isConst);
+				    Array (new long [values[0].to !(size_t)]);
 				return;
 			}
 		}
+		if(cur.isConst)
+			throw new Exception
+			    ("array: array cannot be const");
 		state.back.arrays[cur.dest.name] =
-		    Array (new long [values[0].to !(size_t)], cur.isConst);
+		    Array (new long [values[0].to !(size_t)]);
 	}
 
 	void runStatementImpl (Statement s)
@@ -438,8 +444,20 @@ class Runner
 				return;
 			}
 
+			if(isConst && type == Type.assign)
+			{
+				auto varExpr = cast(VarExpression)(expr);
+            	if (varExpr !is null && varExpr.name == dest.name && varExpr.index is null)
+            	{
+                	throw new Exception
+						("cannot initialize const " ~ dest.name ~" with itself");
+            	}
+			}
+
 			auto value = evalExpression (expr);
 			auto addr = getAddr (dest, type == Type.assign);
+
+
 
 			if(isConst && type == Type.assign)
 			{
@@ -447,12 +465,17 @@ class Runner
 				{
 					if(dest.name in curState.vars)
 					{
-						 curState.vars[dest.name].isConst = true;
-                    	break;
+						if(dest.name in curState.vars)
+						{
+							if(!curState.vars[dest.name].isConst)
+								throw new Exception
+									("redifinition of  " ~ dest.name ~" variable to const");
+							curState.vars[dest.name].isConst = true;
+                    		break;
+						}
 					}
 				}
 			}
-
 			doAssign (cur0, addr, value);
 			delay = complexity;
 			return;
