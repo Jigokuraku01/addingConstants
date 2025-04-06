@@ -110,7 +110,7 @@ class Runner
 		}
 	}
 
-	long * varAddress (string name, bool canCreate = false)
+	long * varAddress (string name, bool canCreate = false, bool isConst = false)
 	{
 		foreach_reverse (ref cur; state)
 		{
@@ -128,11 +128,11 @@ class Runner
 		{
 			throw new Exception ("no such variable: " ~ name);
 		}
-		state.back.vars[name] = Var (0);
+		state.back.vars[name] = Var (0, isConst);
 		return &(state.back.vars[name].value);
 	}
 
-	long * arrayAddress (string name, long index)
+	long * arrayAddress (string name, long index, bool isConst = false)
 	{
 		foreach_reverse (ref cur; state)
 		{
@@ -306,17 +306,17 @@ class Runner
 		assert (false);
 	}
 
-	long * getAddr (VarExpression dest, bool canCreate)
+	long * getAddr (VarExpression dest, bool canCreate, bool isConst = false)
 	{
 		long * res;
 		if (dest.index is null)
 		{
-			res = varAddress (dest.name, canCreate);
+			res = varAddress (dest.name, canCreate, isConst);
 		}
 		else
 		{
 			auto indexValue = evalExpression (dest.index);
-			res = arrayAddress (dest.name, indexValue);
+			res = arrayAddress (dest.name, indexValue, isConst);
 		}
 		return res;
 	}
@@ -372,7 +372,7 @@ class Runner
 			return;
 		}
 
-		auto addr = getAddr (cur.dest, true);
+		auto addr = getAddr (cur.dest, true, cur.isConst);
 
 		auto value = control.queues[otherId][id].pop ();
 		doAssign (cur, addr, value);
@@ -446,7 +446,7 @@ class Runner
 
 			if(isConst && type == Type.assign)
 			{
-				auto varExpr = cast(VarExpression)(expr);
+				auto varExpr = cast(VarExpression)(expr);	
             	if (varExpr !is null && varExpr.name == dest.name && varExpr.index is null)
             	{
                 	throw new Exception
@@ -455,24 +455,23 @@ class Runner
 			}
 
 			auto value = evalExpression (expr);
-			auto addr = getAddr (dest, type == Type.assign);
+			auto addr = getAddr (dest, type == Type.assign, isConst);
 
 
 
 			if(isConst && type == Type.assign)
 			{
+				auto varExpr = cast(VarExpression)(expr);
 				foreach_reverse(ref curState; state)
 				{
+
 					if(dest.name in curState.vars)
 					{
-						if(dest.name in curState.vars)
-						{
-							if(!curState.vars[dest.name].isConst)
-								throw new Exception
-									("redifinition of  " ~ dest.name ~" variable to const");
-							curState.vars[dest.name].isConst = true;
-                    		break;
-						}
+						if(dest.name in curState.vars && !curState.vars[dest.name].isConst)
+							throw new Exception
+								("refidinition of var " ~ dest.name ~ " to const");
+						curState.vars[dest.name].isConst = true;
+                    	break;
 					}
 				}
 			}

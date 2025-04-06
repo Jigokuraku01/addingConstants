@@ -53,14 +53,6 @@ struct Line
 					}
 					while (!t.empty && (t.front.isDigit || t.front == '_'));
 				}
-				else if(t == "const"){
-					do
-					{
-						temp ~= t.front;
-						t.popFront ();
-					}
-					while (!t.empty && t.front.isIdent);
-				}
 				else if (t.front.isIdent)
 				{
 					do
